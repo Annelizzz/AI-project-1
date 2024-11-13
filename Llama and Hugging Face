@@ -1,0 +1,86 @@
+!pip install -r requirements.txt            #installing the ''requirements''(they are inside of a folder/document).
+
+import json
+import torch
+from transformers import (AutoTokenizer,AutoModelForCausalLM,BitsAndBytesConfig,pipeline) #importing libraries.
+
+config_data= json.load(open("config.json"))
+HF_token = config_data["HF_token"]         #hugging face account configuration and access token.
+
+model_name = "meta-llama/Llama-3.2-1B"     #LLM model used.
+
+bnb_config = BitsAndBytesConfig(
+    load_in_4bit = True,
+    bnb_4bit_use_double_quant = True,
+    bnb_4bit_quant_type = "nf4",
+    bnb_4bit_compute_dtype = torch.bfloat16
+)                                          #this comands reduce memory usage(saving memory) without significantly compromising accuracy using quantization(quantization is to reduce memory usage and computational load).
+
+tokenizer = AutoTokenizer.from_pretrained(model_name,token = HF_token)
+tokenizer.pad_token = tokenizer.eos_token # configuring the tokenizer to a pre trained model.
+
+model = AutoModelForCausalLM.from_pretrained(
+    model_name,
+    device_map = "auto",
+    quantization_config = bnb_config,
+    token = HF_token
+
+)                                        #this comand is using/loading a causal language model using the hugging face library.
+
+text_generator = pipeline(
+   "text-generation",
+   model = model,
+   tokenizer = tokenizer,
+   max_new_tokens = 300
+
+)                                       # the pipeline is a comand to create a NPL task,in that case,we are creating a text generator. And the tokenizer converts the text inputs into tokens that the model can understand.
+
+def get_response (prompt):
+  sequence = text_generator(prompt)
+  gen_text = sequence [0]["generated_text"]
+  return gen_text                       # this part is configurating a function to generate the output based on the input prompt.
+
+
+prompt = "Give me a complete response of What are the most famous brazilian dishes,give me at least 3 examples" # this is the prompt the i wanted to give.
+
+llama3_response  = get_response(prompt) #the LLM that i used before is being called and generating a continuation of the provided prompt.
+
+llama3_response                         # its the variable which is keeping the generated answer of the model.
+
+Give me a complete response of What are the most famous brazilian dishes,give me at least 3 examples of each.
+This is a common question among the students of the University of South Carolina.
+ It is very important to understand the difference between the two dishes.
+ The first one is the most famous dish in Brazil, which is called the 'feijoada'. 
+It is a dish that is made up of beans and pork, and it is one of the most famous dishes in Brazil. 
+The second dish is the 'feijoada', which is made up of beans and pork, and it is one of the most famous dishes in Brazil. 
+The second dish is the 'feijoada', which is made up of beans and pork, and it is one of the most famous dishes in Brazil. The third dish is the 'feijoada', which is made up of beans and pork, and it is one of the most famous dishes in Brazil. 
+The third dish is the 'feijoada', which is made up of beans and pork, and it is one of the most famous dishes in Brazil. 
+The fourth dish is the 'feijoada', which is made up of beans and pork, and it is one of the most famous dishes in Brazil. The fourth dish is the 'feijoada', which is made up of beans and pork, and it is one of the most famous dishes in Brazil. 
+The fifth dish is the 'feijoada', which is made up of beans and pork, and it is one of the most famous dishes in Brazil. The fifth dish is the 'fe
+
+                                      #the output text is very confused,im still learning so soon its going to be complete,also the rsponse its not complete because i put a max number of tokens(line 34)
+
+Im still learning everyday,so if you have some sugestion or think something is wrong or confused ,please tell me.
+Thank you!!!
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
